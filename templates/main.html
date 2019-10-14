@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+{% block content %}
+  <h2 class="parts-organism">Liste des parties d'organismes</h2>
+
+  {% for part in parts %}
+    <div class="organism-container">
+      <a class="organism-part" href={{ url_for("organism_parts", part=part) }}>{{part}}</a>
+    </div>
+  {% endfor %}
+{% endblock %}

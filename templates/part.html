@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+{% block content %}
+  <h2 class="genes-available">Genes disponibles pour cette partie</h2>
+
+  {% for gene in genes %}
+    <div class="gene-container">
+      <a class="gene-link" href={{ url_for("get_gene", id=gene[0]) }}>{{gene[1]}} ({{gene[0]}})</a>
+    </div>
+  {% endfor %}
+{% endblock %}

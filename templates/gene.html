@@ -1,0 +1,62 @@
+{% extends "index.html" %}
+{% block content %}
+  <h2 class="gene-title">Gène {{gene['id']}}</h2>
+
+  <div class="gene-infos">
+    <h3>ID</h3>
+    <div class="gene-info">
+      {{gene['id']}}
+    </div>
+
+    <h3>Nom associé</h3>
+    <div class="gene-info">
+      {{gene['associated_gene_name']}}
+    </div>
+
+    <h3>Nom du chromosome</h3>
+    <div class="gene-info">
+      {{gene['chromosome_name']}}
+    </div>
+
+    <h3>Band</h3>
+    <div class="gene-info">
+      {{gene['band']}}
+    </div>
+
+    <h3>Brin</h3>
+    <div class="gene-info">
+      {{gene['strand']}}
+    </div>
+
+    <h3>Position début</h3>
+    <div class="gene-info">
+      {{gene['start']}}
+    </div>
+
+    <h3>Position fin</h3>
+    <div class="gene-info">
+      {{gene['end']}}
+    </div>
+
+    <h3>Nombre de transcripts</h3>
+    <div class="gene-info">
+      {{gene['transcript_count']}}
+    </div>
+  </div>
+
+  <h2 class="transcript-title">Transcripts de {{gene['id']}}</h2>
+
+  {% if transcripts %}
+    <div class="transcript-infos">
+      {% for transcript in transcripts %}
+        <h3 class="transcript-title">Transcript {{ transcript['id'] }}</h3>
+
+        <div class="transcript-info">
+          Début: {{ transcript['start'] }}, fin: {{ transcript['end'] }}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <h3>Il n'y a aucun transcript associé à ce gène.</h3>
+  {% endif %} 
+{% endblock %}

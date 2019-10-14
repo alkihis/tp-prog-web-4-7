@@ -1,0 +1,11 @@
+<html>
+  <head>
+    <title>Page</title>
+    <link rel="stylesheet" href={{ url_for("static", filename="main.css") }}>
+  </head>
+  <body>
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
