@@ -1,4 +1,9 @@
 {% extends "index.html" %}
+
+{% block title %}
+Gène {{gene['id']}}
+{% endblock %}
+
 {% block content %}
   <h2 class="gene-title">Gène {{gene['id']}}</h2>
 
@@ -49,7 +54,11 @@
   {% if transcripts %}
     <div class="transcript-infos">
       {% for transcript in transcripts %}
-        <h3 class="transcript-title">Transcript {{ transcript['id'] }}</h3>
+        <h3 class="transcript-title">
+          <a href="{{ url_for("get_transcript", id=transcript['id']) }}">
+            Transcript {{ transcript['id'] }}
+          </a>
+        </h3>
 
         <div class="transcript-info">
           Début: {{ transcript['start'] }}, fin: {{ transcript['end'] }}
@@ -58,5 +67,25 @@
     </div>
   {% else %}
     <h3>Il n'y a aucun transcript associé à ce gène.</h3>
+  {% endif %} 
+
+  <h3>Position des transcripts</h3>
+
+  {{ gene_svg_content|safe }}
+
+  <h2 class="parts-title">Parties d'organismes reliées</h2>
+
+  <img style="display: block; margin: auto; margin-bottom: 1rem;" src="{{ url_for("get_gene_image", id=gene['id']) }}" />
+
+  {% if parts %}
+    <div class="parts-infos">
+      {% for part in parts %}
+        <div class="part">
+          <a href="{{ url_for("organism_parts", part=part) }}">{{ part }}</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <h3>Il n'y a aucune partie d'organisme associé à ce gène.</h3>
   {% endif %} 
 {% endblock %}

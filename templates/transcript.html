@@ -1,0 +1,50 @@
+{% extends "index.html" %}
+
+{% block title %}
+Transcript {{transcript['id']}}
+{% endblock %}
+
+{% block content %}
+  <h2 class="transcript-title">Transcript {{transcript['id']}}</h2>
+
+  <div class="transcript-infos">
+    <h3>ID</h3>
+    <div class="transcript-info">
+      {{transcript['id']}}
+    </div>
+
+    <h3>Gène associé</h3>
+    <div class="transcript-gene">
+      <a href="{{ url_for("get_gene", id=transcript['gene']) }}">{{transcript['gene']}}</a>
+    </div>
+
+    <h3>Position début</h3>
+    <div class="transcript-info">
+      {{transcript['start']}}
+    </div>
+
+    <h3>Position fin</h3>
+    <div class="transcript-info">
+      {{transcript['end']}}
+    </div>
+
+    <h3>Biotype</h3>
+    <div class="transcript-info">
+      {{transcript['biotype']}}
+    </div>
+  </div>
+
+  <h2 class="parts-title">Parties d'organismes reliées</h2>
+
+  {% if parts %}
+    <div class="parts-infos">
+      {% for part in parts %}
+        <div class="part">
+          <a href="{{ url_for("organism_parts", part=part) }}">{{ part }}</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <h3>Il n'y a aucune partie d'organisme associé à ce gène.</h3>
+  {% endif %} 
+{% endblock %}

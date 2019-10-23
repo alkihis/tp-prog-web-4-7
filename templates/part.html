@@ -1,4 +1,9 @@
 {% extends "index.html" %}
+
+{% block title %}
+Gènes disponibles
+{% endblock %}
+
 {% block content %}
   <h2 class="genes-available">Genes disponibles pour cette partie</h2>
 
@@ -7,4 +12,20 @@
       <a class="gene-link" href={{ url_for("get_gene", id=gene[0]) }}>{{gene[1]}} ({{gene[0]}})</a>
     </div>
   {% endfor %}
+
+  <div class="center navigator">
+    {% if has_before %}
+      <a href="{{ url_for("organism_parts", part=part, page=before_page) }}">&lt; Page précédente</a>
+    {% endif %}
+    
+    {% if has_before and has_next %}
+      •
+    {% endif %}
+
+    {% if has_next %}
+      <a href="{{ url_for("organism_parts", part=part, page=next_page) }}">Page suivante &gt;</a>
+    {% endif %}
+  </div>
+
+  
 {% endblock %}

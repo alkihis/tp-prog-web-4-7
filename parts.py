@@ -1,5 +1,5 @@
 from main import app
-from flask import render_template
+from flask import render_template, abort
 from database import get_db
 
 @app.route('/parts/<part>/genes')
@@ -19,12 +19,11 @@ def organism_parts(part: str):
   """, [part])
 
   # List[Tuple[str, str]]
-  exprs = []
-  for row in expressions.fetchall():
-    ensembl_id = row[0]
-    gene_name = row[1]
+  exprs = expressions.fetchall()
 
-    exprs.append([ensembl_id, gene_name])
+  if not exprs:
+    abort(404)
+
+  conn.close()
 
   return render_template('part.html', genes=exprs)
-

@@ -1,6 +1,6 @@
 from main import app
 from database import get_db
-from flask import abort
+from flask import abort, render_template
 
 @app.route('/genes/<id>')
 def get_gene(id: str):
@@ -57,6 +57,7 @@ def get_gene(id: str):
       SELECT DISTINCT atlas_organism_part
       FROM Expression 
       WHERE ensembl_transcript_id IN (%s)
+      AND atlas_organism_part IS NOT NULL
     """ % ','.join('?' for i in transcripts_ids), transcripts_ids)
 
     parts = [ part[0] for part in parts_organism.fetchall() ]

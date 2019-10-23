@@ -6,11 +6,16 @@ from database import get_db
 def list_of_parts():
   conn = get_db()
 
-  # Get all the rows that have a atlas_organism_part from Expression
-  cur = conn.cursor()
-  expressions = cur.execute("SELECT DISTINCT atlas_organism_part FROM Expression WHERE atlas_organism_part IS NOT NULL ORDER BY atlas_organism_part ASC")
+  try:
+    # Get all the rows that have a atlas_organism_part from Expression
+    cur = conn.cursor()
+    expressions = cur.execute("SELECT DISTINCT atlas_organism_part FROM Expression WHERE atlas_organism_part IS NOT NULL ORDER BY atlas_organism_part ASC")
 
-  parts = [ part[0] for part in expressions.fetchall() ]
+    parts = [ part[0] for part in expressions.fetchall() ]
 
-  return render_template('main.html', parts=parts)
+    conn.close()
+    return render_template('main.html', parts=parts)
+  except:
+    conn.close()
+
 
