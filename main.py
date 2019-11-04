@@ -531,8 +531,10 @@ def api_put_gene(id: str):
   conn = get_db()
   cur = conn.cursor()
   cur.execute("""
-    INSERT OR REPLACE INTO Genes (ensembl_gene_id, associated_gene_name, Chromosome_Name, band, strand, gene_start, gene_end)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT OR REPLACE INTO Genes 
+    (ensembl_gene_id, associated_gene_name, Chromosome_Name, band, strand, gene_start, gene_end)
+    VALUES 
+    (?, ?, ?, ?, ?, ?, ?)
   """, [
     data['Ensembl_Gene_ID'],
     data['Associated_Gene_Name'] if 'Associated_Gene_Name' in data else None,
