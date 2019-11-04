@@ -39,6 +39,9 @@ def getsvg(transcripts: list):
   window_size_inside = end - begin
   window_size_large = window_size_inside + 20
 
+  if len(transcripts) == 0:
+    return ""
+
   height = (len(transcripts) * 10) + 20
   computed = window_size_large / len(transcripts)
 
