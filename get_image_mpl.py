@@ -44,39 +44,15 @@ def getsvg(transcripts: list):
 
   height = (len(transcripts) * 10) + 20
   computed = 700
-
-  # Génération des lignes
-  lines = []
-
   cur_height = 100
-
-  for tr in transcripts:
-    begin_line = tr['start']
-    end_line = tr['end']
-    trid = tr['id']
-
-    lines.append(render_template("line.svg", **{
-      "trid": trid,
-      "begin_line": begin_line,
-      "cur_height": cur_height,
-      "end_line": end_line
-    }))
-    print(computed)
-    cur_height += computed
 
   return render_template("transcript.svg", **{
     "window_size_large": window_size_large,
     "window_size_inside": window_size_inside,
     "height": height,
     "window_size_height": window_height,
-    "lines": lines,
     "begin": begin,
-    "end": end
+    "end": end,
+    "line_height": computed,
+    "transcripts": transcripts,
   })
-
-  # return f"""
-  #   <svg viewBox="0 0 {window_size_large} {window_size_large}" 
-  #     style="height: {height*4}px; margin: auto; display: block; margin-top: 1rem;">
-  #     {lines_joined}
-  #   </svg>
-  # """
