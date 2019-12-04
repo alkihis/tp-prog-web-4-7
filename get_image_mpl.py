@@ -52,8 +52,8 @@ def getsvg(transcripts: list):
   window_size_inside = window_height
   window_size_large = window_size_inside + 50
 
-  N = 5
-  HSV_tuples = [(x*1.0/N, 0.5, 0.5) for x in range(N)]
+  N = 8
+  HSV_tuples = [(x*1.0/N, 0.75, 0.75) for x in range(N)]
   colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
 
   return render_template("transcript.svg", **{

@@ -310,7 +310,7 @@ def generate_gene_object_from_row(row_gene, detailed = False):
     "Strand": row_gene[4],
     "Gene_Start": row_gene[5],
     "Gene_End": row_gene[6],
-    "transcripts": generate_transcript_from_db(id, True),
+    "transcripts": generate_transcript_from_db(row_gene[0], True),
     "href": SITENAME + flask.url_for("get_gene", id=row_gene[0])
   }
 
@@ -374,7 +374,7 @@ def generate_transcript_from_db(id: str, from_gene_id = False):
     for x in rows_transcripts
   ]
 
-@app.route('/api/genes/<id>')
+@app.route('/api/genes/<id>', methods=["GET"])
 def api_get_gene(id: str):
   custom_etag = str(get_db_mtime())
   if custom_etag in request.if_none_match:
