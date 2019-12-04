@@ -1,0 +1,36 @@
+<svg 
+  viewBox="0 0 {{ window_size_large }} {{ window_size_height }}" 
+  style="height: {{ height * 4 }}px; margin: auto; display: block; margin-top: 1rem;"
+>
+  <line 
+    x1="0" 
+    y1="{{ window_size_height }}" 
+    x2="{{ window_size_large }}" 
+    y2="{{ window_size_height }}" 
+    style="stroke:red; stroke-width: 50"
+  />
+
+  <text 
+    x="0" 
+    y="{{ window_size_height - 50 }}" 
+    style="fill: #8c2300" 
+    font-size="150" 
+    font-family="Arial"
+  >
+    {{ begin }}
+  </text>
+
+  <text 
+    x="{{ window_size_inside - 750 }}" 
+    y="{{ window_size_height - 50 }}" 
+    style="fill: #8c2300" 
+    font-size="150" 
+    font-family="Arial"
+  >
+    {{ end }}
+  </text>
+
+  {% for line in lines %}
+    {{ line|safe }}
+  {% endfor %}
+</svg>

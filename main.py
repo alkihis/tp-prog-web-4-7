@@ -1,7 +1,6 @@
 import flask
 from flask import send_from_directory, request, make_response
 from flask import render_template, abort
-from database import get_db
 import sqlite3
 from flask import g
 from get_image_mpl import getimage, getsvg
@@ -44,8 +43,10 @@ def get_db_mtime():
 
 @app.teardown_request
 def auto_db_close(teardown):
+  # after each request, close database automatically
   db = get_db()
-  db.close()
+  if db:
+    db.close()
 
 # Listen for get request on root
 @app.route('/<path:filename>')

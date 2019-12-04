@@ -1,0 +1,18 @@
+<g class="svg-transcript">
+  <a target="_blank" href="{{ url_for('get_transcript', id=trid) }}">
+    <line 
+      x1="{{ begin_line }}" 
+      y1="{{ cur_height }}" 
+      x2="{{ end_line }}" 
+      y2="{{ cur_height }}" 
+      style="stroke: #4452a9; stroke-width: 200"
+    />
+    <text 
+      x="{{ begin_line + 50 }}" 
+      y="{{ cur_height + 330 }}" 
+      style="fill: #08205d" 
+      font-size="250" 
+      font-family="Arial"
+    >{{ trid }}</text>
+  </a>
+</g>

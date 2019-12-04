@@ -1,6 +1,6 @@
 import matplotlib.figure
 from io import BytesIO
-from flask import url_for
+from flask import url_for, render_template
 
 def getimage(parts: dict):
   parts_names = list(parts.keys())
@@ -19,7 +19,6 @@ def getimage(parts: dict):
 
 def getsvg(transcripts: list):
   # transcripts is {'start': int, 'end': int, 'id': str}[]
-
   begin = 1e1000
   end = 0
 
@@ -37,22 +36,17 @@ def getsvg(transcripts: list):
     tr['end'] -= begin
 
   window_size_inside = end - begin
+  window_height = len(transcripts) * 700
   window_size_large = window_size_inside + 20
 
   if len(transcripts) == 0:
     return ""
 
   height = (len(transcripts) * 10) + 20
-  computed = window_size_large / len(transcripts)
+  computed = 700
 
   # Génération des lignes
-  lines = [
-    f"""
-    <line x1="0" y1="{window_size_large}" x2="{window_size_large}" y2="{window_size_large}" style="stroke:red; stroke-width: 50"/>
-    <text x="0" y="{window_size_large - 50}" style="fill: #8c2300" font-size="150" font-family="Arial">{begin}</text>
-    <text x="{window_size_inside - 750}" y="{window_size_large - 50}" style="fill: #8c2300" font-size="150" font-family="Arial">{end}</text>
-    """
-  ]
+  lines = []
 
   cur_height = 100
 
@@ -61,23 +55,28 @@ def getsvg(transcripts: list):
     end_line = tr['end']
     trid = tr['id']
 
-    lines.append(f"""
-      <g class="svg-transcript">
-        <a target="_blank" href="{url_for('get_transcript', id=trid)}">
-          <line x1="{begin_line}" y1="{cur_height}" x2="{end_line}" y2="{cur_height}" style="stroke: #4452a9; stroke-width: 200"/>
-          <text x="{begin_line + 50}" y="{cur_height + 330}" style="fill: #08205d" font-size="250" font-family="Arial">{trid}</text>
-        </a>
-        <tspan x="{begin_line + 50}" y="{cur_height + 330}" class="svg-popup">Hello !</tspan>
-      </g>
-    """)
-
+    lines.append(render_template("line.svg", **{
+      "trid": trid,
+      "begin_line": begin_line,
+      "cur_height": cur_height,
+      "end_line": end_line
+    }))
+    print(computed)
     cur_height += computed
 
-  lines_joined = "\n".join(lines)
+  return render_template("transcript.svg", **{
+    "window_size_large": window_size_large,
+    "window_size_inside": window_size_inside,
+    "height": height,
+    "window_size_height": window_height,
+    "lines": lines,
+    "begin": begin,
+    "end": end
+  })
 
-  return f"""
-    <svg viewBox="0 0 {window_size_large} {window_size_large}" 
-      style="height: {height*4}px; margin: auto; display: block; margin-top: 1rem;">
-      {lines_joined}
-    </svg>
-  """
+  # return f"""
+  #   <svg viewBox="0 0 {window_size_large} {window_size_large}" 
+  #     style="height: {height*4}px; margin: auto; display: block; margin-top: 1rem;">
+  #     {lines_joined}
+  #   </svg>
+  # """

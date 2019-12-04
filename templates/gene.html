@@ -71,7 +71,9 @@ Gène {{gene['id']}}
 
   <h3>Position des transcripts</h3>
 
-  {{ gene_svg_content|safe }}
+  <div style="overflow-x: scroll; overflow-y: hidden;">
+    {{ gene_svg_content|safe }}
+  </div>
 
   <h2 class="parts-title">Parties d'organismes reliées</h2>
 
