@@ -10,7 +10,6 @@ import os
 import json
 import hashlib 
 
-CONFIG = "SQLITE"
 SITENAME = "http://localhost:5000"
 SQLITE_FILE = "ensembl_hs63_simple.sqlite"
 
@@ -19,26 +18,12 @@ app = flask.Flask(__name__)
 def get_db() -> sqlite3.Connection:
   db = getattr(g, '_db_', None)
 
-  if CONFIG == "SQLITE":
-    if not db:
-      db = g._db_ = sqlite3.connect(SQLITE_FILE)
-  else:
-    import mysql.connector
-
-    if not db:
-      db = g._db_ = mysql.connector.connect(
-        user="alkihis",
-        password="mysqlpassword",
-        host="alkihis.mysql.pythonanywhere-services.com",
-        database="alkihis$ensembl"
-      )
+  if not db:
+    db = g._db_ = sqlite3.connect(SQLITE_FILE)
     
   return db
 
 def get_db_mtime():
-  if CONFIG != "SQLITE":
-    return datetime.datetime.now().timestamp()
-
   return os.path.getmtime(SQLITE_FILE)
 
 @app.teardown_request
@@ -78,14 +63,14 @@ def organism_parts(part: str):
   # Get all the rows that have a atlas_organism_part from Expression
   cur = conn.cursor()
 
-  expressions = cur.execute("""
+  expressions = cur.execute(f"""
     SELECT DISTINCT t.ensembl_gene_id, g.associated_gene_name
     FROM Expression e 
     JOIN Transcripts t 
     ON e.ensembl_transcript_id=t.ensembl_transcript_id 
     JOIN Genes g 
     ON t.ensembl_gene_id=g.ensembl_gene_id 
-    WHERE e.atlas_organism_part=""" + ("?" if CONFIG == "SQLITE" else "%s") + f"""
+    WHERE e.atlas_organism_part=?
     LIMIT {page_len + 1} OFFSET {offset}
   """, [part])
 
@@ -138,7 +123,7 @@ def get_gene(id: str):
   expressions = cur.execute("""
     SELECT *
     FROM Genes 
-    WHERE ensembl_gene_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+    WHERE ensembl_gene_id=?
   """, [id])
 
   row_gene = expressions.fetchone()
@@ -161,7 +146,7 @@ def get_gene(id: str):
   transcripts = cur.execute("""
     SELECT *
     FROM Transcripts 
-    WHERE ensembl_gene_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+    WHERE ensembl_gene_id=?
   """, [id])
 
   rows_transcripts = transcripts.fetchall()
@@ -186,7 +171,7 @@ def get_gene(id: str):
       FROM Expression 
       WHERE ensembl_transcript_id IN (%s)
       AND atlas_organism_part IS NOT NULL
-    """ % ','.join([("?" if CONFIG == "SQLITE" else "%s") for i in transcripts_ids]), transcripts_ids)
+    """ % ','.join(["?" for i in transcripts_ids]), transcripts_ids)
 
     parts = [ part[0] for part in parts_organism.fetchall() ]
 
@@ -253,7 +238,7 @@ def get_transcript(id: str):
   expressions = cur.execute("""
     SELECT *
     FROM Transcripts 
-    WHERE ensembl_transcript_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+    WHERE ensembl_transcript_id=?
   """, [id])
 
   row_transcript = expressions.fetchone()
@@ -272,7 +257,7 @@ def get_transcript(id: str):
   parts_organism = cur.execute("""
       SELECT DISTINCT atlas_organism_part
       FROM Expression 
-      WHERE ensembl_transcript_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+      WHERE ensembl_transcript_id=?
       AND atlas_organism_part IS NOT NULL
     """, [row_transcript[0]])
 
@@ -336,7 +321,7 @@ def generate_gene_from_db(id: str, detailed = False):
   expressions = cur.execute("""
     SELECT *
     FROM Genes 
-    WHERE ensembl_gene_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+    WHERE ensembl_gene_id=?
   """, [id])
 
   row_gene = expressions.fetchone()
@@ -363,7 +348,7 @@ def generate_transcript_from_db(id: str, from_gene_id = False):
     transcripts = cur.execute("""
       SELECT *
       FROM Transcripts 
-      WHERE ensembl_transcript_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+      WHERE ensembl_transcript_id=?
     """, [id])
 
     row_transcript = transcripts.fetchone()
@@ -379,7 +364,7 @@ def generate_transcript_from_db(id: str, from_gene_id = False):
     transcripts = cur.execute("""
       SELECT *
       FROM Transcripts 
-      WHERE ensembl_gene_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+      WHERE ensembl_gene_id=?
     """, [id])
 
     rows_transcripts = transcripts.fetchall()
@@ -468,7 +453,7 @@ def api_delete_gene(id: str):
 
   cur.execute("""
     DELETE FROM Genes 
-    WHERE ensembl_gene_id=""" + ("?" if CONFIG == "SQLITE" else "%s") + """
+    WHERE ensembl_gene_id=?
   """, [id])
 
   conn.commit()

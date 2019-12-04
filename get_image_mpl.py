@@ -19,7 +19,7 @@ def getimage(parts: dict):
 
 def getsvg(transcripts: list):
   # transcripts is {'start': int, 'end': int, 'id': str}[]
-  begin = 1e1000
+  begin = 1e10000
   end = 0
 
   # Recherche de la fenêtre
