@@ -29,6 +29,7 @@ def get_db_mtime():
 @app.teardown_request
 def auto_db_close(teardown):
   # after each request, close database automatically
+  # si jamais une exception a interrompu la requête par exemple
   db = get_db()
   if db:
     db.close()
@@ -45,8 +46,6 @@ def organism_parts(part: str):
   offset = 0
   page_len = 30
   page = 1
-
-  print(request.args)
 
   if request.args.get('page'):
     page_ = request.args.get('page')
@@ -276,6 +275,7 @@ ERROR_CODES = {
   5: ["Too many arguments", 400],
   6: ["Invalid argument type", 400],
   7: ["Element already exists", 409],
+  8: ["Sort method is invalid", 400],
 }
 
 def sendError(code: int, detail = None):
@@ -417,12 +417,34 @@ def api_get_gene_collection():
     resp.set_etag(custom_etag)
     return resp
 
+  mode_sort = "Ensembl_gene_id"
+  way = 'ASC'
+
+  if 'sort' in request.args:
+    sorts_to_column = {
+      'gene': 'Ensembl_gene_id',
+      'count': 'Transcript_count',
+      'strand': 'Strand',
+      'start': 'Gene_start',
+      'end': 'Gene_end'
+    }
+
+    if request.args['sort'] in sorts_to_column:
+      mode_sort = sorts_to_column[request.args['sort']]
+    else:
+      return sendError(8)
+  
+  if 'way' in request.args and request.args['way'] == 'desc':
+    way = "DESC"
+
   conn = get_db()
 
   cur = conn.cursor()
+
   expressions = cur.execute(f"""
     SELECT *
     FROM Genes 
+    ORDER BY {mode_sort} {way}
     LIMIT 100 OFFSET {offset}
   """)
 
