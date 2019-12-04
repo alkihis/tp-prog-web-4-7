@@ -66,4 +66,5 @@ def getsvg(transcripts: list):
     "line_height": line_height,
     "transcripts": transcripts,
     "colors": colors,
+    "n_colors": len(colors),
   })
