@@ -36,15 +36,14 @@ def getsvg(transcripts: list):
     tr['end'] -= begin
 
   window_size_inside = end - begin
-  window_height = len(transcripts) * 700
+  line_height = 700
+  window_height = len(transcripts) * line_height
   window_size_large = window_size_inside + 20
 
   if len(transcripts) == 0:
     return ""
 
   height = (len(transcripts) * 10) + 20
-  computed = 700
-  cur_height = 100
 
   return render_template("transcript.svg", **{
     "window_size_large": window_size_large,
@@ -53,6 +52,6 @@ def getsvg(transcripts: list):
     "window_size_height": window_height,
     "begin": begin,
     "end": end,
-    "line_height": computed,
+    "line_height": line_height,
     "transcripts": transcripts,
   })
