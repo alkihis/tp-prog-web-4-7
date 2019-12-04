@@ -44,6 +44,20 @@ a:visited {
   color: rgb(230, 175, 255);
 }
 
+.svg-text {
+  fill: #aec3f8;
+  opacity: 1;
+  transition: .3s;
+}
+
+.svg-transcript a:hover {
+  text-decoration: none;
+}
+
+.svg-transcript:not(:hover) .svg-text {
+  opacity: 0;
+}
+
 @media (prefers-color-scheme: light) {
   body {
     background-color: rgb(241, 241, 241);
@@ -60,6 +74,10 @@ a:visited {
   
   a:visited {
     color: rgb(203, 89, 255);
+  }
+
+  .svg-text {
+    fill: #08205d;
   }
 }
 

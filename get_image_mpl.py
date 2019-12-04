@@ -56,7 +56,7 @@ def getsvg(transcripts: list):
   HSV_tuples = [(x*1.0/N, 0.75, 0.75) for x in range(N)]
   colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
 
-  return render_template("transcript.svg", **{
+  return render_template("transcript.svg.jinja", **{
     "window_size_large": window_size_large,
     "window_size_inside": window_size_inside,
     "height": height,

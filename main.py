@@ -91,7 +91,7 @@ def organism_parts(part: str):
   if has_before:
     before_page = page - 1
 
-  return render_template('part.html', 
+  return render_template('part.html.jinja', 
     genes=exprs[0:page_len], 
     before_page=before_page, 
     next_page=next_page, 
@@ -111,7 +111,7 @@ def list_of_parts():
 
     parts = [ part[0] for part in expressions.fetchall() ]
 
-    return render_template('main.html', parts=parts)
+    return render_template('main.html.jinja', parts=parts)
   except:
     pass
 
@@ -177,7 +177,7 @@ def get_gene(id: str):
 
   content_svg = get_gene_svg(gene_info['id'])
 
-  return render_template('gene.html', 
+  return render_template('gene.html.jinja', 
     gene=gene_info, 
     transcripts=transcripts_infos,
     parts=parts,
@@ -263,7 +263,7 @@ def get_transcript(id: str):
 
   parts = [ part[0] for part in parts_organism.fetchall() ]
 
-  return render_template('transcript.html', transcript=tr_info, parts=parts)
+  return render_template('transcript.html.jinja', transcript=tr_info, parts=parts)
 
 
 #### API

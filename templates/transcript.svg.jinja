@@ -1,5 +1,5 @@
 <svg 
-  viewBox="0 0 {{ window_size_large }} {{ window_size_height }}" 
+  viewBox="-1500 0 {{ window_size_large + 3000 }} {{ window_size_height }}" 
   style="height: {{ height * 4 }}px; margin: auto; display: block; margin-top: 1rem;"
 >
   <line 
@@ -38,7 +38,6 @@
     {% set end_line = tr['end'] %}
     {% set color = colors[loop.index % n_colors] %}
 
-
     <g class="svg-transcript">
       <a target="_blank" href="{{ url_for('get_transcript', id=trid) }}">
         <line 
@@ -51,10 +50,12 @@
         <text 
           x="{{ begin_line + 50 }}" 
           y="{{ cur_height.value + 330 }}" 
-          style="fill: #08205d" 
+          class="svg-text"
           font-size="250" 
           font-family="Arial"
-        >{{ trid }}</text>
+        >
+          {{ trid }}
+        </text>
       </a>
     </g>
 
