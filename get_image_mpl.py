@@ -1,6 +1,7 @@
 import matplotlib.figure
 from io import BytesIO
 from flask import url_for, render_template
+import colorsys
 
 def getimage(parts: dict):
   parts_names = list(parts.keys())
@@ -38,12 +39,20 @@ def getsvg(transcripts: list):
   window_size_inside = end - begin
   line_height = 700
   window_height = len(transcripts) * line_height
-  window_size_large = window_size_inside + 20
 
   if len(transcripts) == 0:
     return ""
 
   height = (len(transcripts) * 10) + 20
+
+  for tr in transcripts:
+    tr['start'] = (tr['start'] / window_size_inside) * window_height
+    tr['end'] = (tr['end'] / window_size_inside) * window_height
+
+  window_size_inside = window_height
+  window_size_large = window_size_inside + 50
+
+  print(colors)
 
   return render_template("transcript.svg", **{
     "window_size_large": window_size_large,
@@ -54,4 +63,12 @@ def getsvg(transcripts: list):
     "end": end,
     "line_height": line_height,
     "transcripts": transcripts,
+    "colors": colors,
   })
+
+N = 5
+HSV_tuples = [(x*1.0/N, 0.5, 0.5) for x in range(N)]
+colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
+
+def color(i: int):
+  return colors[i % len(colors)]

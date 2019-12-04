@@ -36,6 +36,8 @@
     {% set trid = tr['id'] %}
     {% set begin_line = tr['start'] %}
     {% set end_line = tr['end'] %}
+    {% set color = colors[loop.index % n_colors] %}
+
 
     <g class="svg-transcript">
       <a target="_blank" href="{{ url_for('get_transcript', id=trid) }}">
@@ -44,7 +46,7 @@
           y1="{{ cur_height.value }}" 
           x2="{{ end_line }}" 
           y2="{{ cur_height.value }}" 
-          style="stroke: #4452a9; stroke-width: 200"
+          style="stroke: rgb({{ color[0] * 255 }}, {{ color[1] * 255 }}, {{ color[2] * 255 }}); stroke-width: 200"
         />
         <text 
           x="{{ begin_line + 50 }}" 
