@@ -3,6 +3,9 @@ from io import BytesIO
 from flask import url_for, render_template
 import colorsys
 
+# Récupère une image Matplotlib depuis un dict.
+# Clés: nom de la partie
+# Valeurs: Nombre d'occurences de la partie
 def getimage(parts: dict):
   parts_names = list(parts.keys())
   parts_values = list(parts.values())
@@ -18,6 +21,8 @@ def getimage(parts: dict):
 
   return b.getvalue()
 
+# Récupère une chaîne SVG pour une liste de transcript donnée.
+# Les transcripts doivent contenir une position de début, de fin et un ID.
 def getsvg(transcripts: list):
   # transcripts is {'start': int, 'end': int, 'id': str}[]
   begin = 1e10000

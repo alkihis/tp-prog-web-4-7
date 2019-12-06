@@ -16,6 +16,9 @@ SQLITE_FILE = "ensembl_hs63_simple.sqlite"
 app = flask.Flask(__name__)
 
 def get_db() -> sqlite3.Connection:
+  """
+    Renvoie la base de données SQLITE ensembl.
+  """
   db = getattr(g, '_db_', None)
 
   if not db:
@@ -24,21 +27,33 @@ def get_db() -> sqlite3.Connection:
   return db
 
 def get_db_mtime():
+  """
+    Renvoie le temps de la dernière modification de la base de données.
+  """
   return os.path.getmtime(SQLITE_FILE)
 
 @app.teardown_request
 def auto_db_close(teardown):
+  """
+    Après chaque requête, ferme la base de données.
+  """
   # after each request, close database automatically
   # si jamais une exception a interrompu la requête par exemple
   db = get_db()
   if db:
     db.close()
 
-# Listen for get request on root
+
+@app.errorhandler(sqlite3.Error)
+def handle_sqlite_exceptions(error: sqlite3.Error):
+  return render_template('sql_error.html.jinja', error=error), 500
+
+# Sert les fichiers statiques
 @app.route('/<path:filename>')
 def serve_root(filename):
   return send_from_directory('static', filename)
 
+# Page parties => gènes
 @app.route('/parts/<part>/genes')
 def organism_parts(part: str):
   conn = get_db()
@@ -73,8 +88,7 @@ def organism_parts(part: str):
     LIMIT {page_len + 1} OFFSET {offset}
   """, [part])
 
-  # List[Tuple[str, str]]
-  exprs = expressions.fetchall()
+  exprs: typing.List[typing.Tuple[str, str]] = expressions.fetchall()
 
   if not exprs:
     abort(404)
@@ -99,21 +113,26 @@ def organism_parts(part: str):
     has_before=has_before
   )
 
+# Homepage
 @app.route('/')
 def list_of_parts():
   conn = get_db()
 
-  try:
-    # Get all the rows that have a atlas_organism_part from Expression
-    cur = conn.cursor()
-    expressions = cur.execute("SELECT DISTINCT atlas_organism_part FROM Expression WHERE atlas_organism_part IS NOT NULL ORDER BY atlas_organism_part ASC")
+  # Get all the rows that have a atlas_organism_part from Expression
+  cur = conn.cursor()
+  expressions = cur.execute("""
+    SELECT DISTINCT atlas_organism_part 
+    FROM Expression 
+    WHERE atlas_organism_part IS NOT NULL 
+    ORDER BY atlas_organism_part ASC
+  """)
 
-    parts = [ part[0] for part in expressions.fetchall() ]
+  parts = [ part[0] for part in expressions.fetchall() ]
 
-    return render_template('main.html.jinja', parts=parts)
-  except:
-    pass
+  return render_template('main.html.jinja', parts=parts)
 
+
+# Page du gène
 @app.route('/genes/<id>')
 def get_gene(id: str):
   conn = get_db()
@@ -183,6 +202,8 @@ def get_gene(id: str):
     gene_svg_content=content_svg
   )
 
+
+# Image matplotlib représentant les parties de gènes par transcripts
 @app.route('/genes/<id>/parts.png')
 def get_gene_image(id: str):
   conn = get_db()
@@ -209,6 +230,8 @@ def get_gene_image(id: str):
   resp.headers['content-type'] = "image/png"
   return resp
 
+
+# Image SVG représentant les transcripts et leur position pour un gène donné
 @app.route('/genes/<id>/transcripts.svg')
 def get_gene_svg(id: str):
   conn = get_db()
@@ -229,6 +252,8 @@ def get_gene_svg(id: str):
 
   return svg_text
 
+
+# Page du transcript
 @app.route('/transcripts/<id>')
 def get_transcript(id: str):
   conn = get_db()
@@ -278,15 +303,22 @@ ERROR_CODES = {
   8: ["Sort method is invalid", 400],
 }
 
+# Fonction générique pour envoyer une erreur en JSON.
 def sendError(code: int, detail = None):
   if code in ERROR_CODES:
     if detail:
-      return flask.jsonify({"error": ERROR_CODES[code][0], "detail": detail, "code": code}), ERROR_CODES[code][1]
+      resp: flask.Response = flask.jsonify({"error": ERROR_CODES[code][0], "detail": detail, "code": code})
+    else:
+      resp: flask.Response = flask.jsonify({"error": ERROR_CODES[code][0], "code": code})
 
-    return flask.jsonify({"error": ERROR_CODES[code][0], "code": code}), ERROR_CODES[code][1]
+    resp.status_code = ERROR_CODES[code][1]
+    return resp
 
   raise IndexError("Code does not exists")
 
+
+# Génère un dictionnaire représentant un gène 
+# depuis une ligne de la base de données
 def generate_gene_object_from_row(row_gene, detailed = False):
   if not detailed:
     return {
@@ -314,6 +346,8 @@ def generate_gene_object_from_row(row_gene, detailed = False):
     "href": SITENAME + flask.url_for("get_gene", id=row_gene[0])
   }
 
+
+# Génère un dictionnaire depuis un gène de la base de données par son ID
 def generate_gene_from_db(id: str, detailed = False):
   conn = get_db()
 
@@ -330,7 +364,10 @@ def generate_gene_from_db(id: str, detailed = False):
     return None
 
   return generate_gene_object_from_row(row_gene, detailed)
-  
+
+
+# Génère un dictionnaire représentant un transcript
+# depuis une ligne de la base de données
 def generate_transcript_object_from_row(row_transcript):
   return {
     "Ensembl_Transcript_ID": row_transcript[0],
@@ -338,6 +375,9 @@ def generate_transcript_object_from_row(row_transcript):
     "Transcript_End": row_transcript[3],
   }
 
+
+# Génère un dictionnaire depuis un transcript 
+# de la base de données par son ID
 def generate_transcript_from_db(id: str, from_gene_id = False):
   conn = get_db()
   cur = conn.cursor()
@@ -374,6 +414,8 @@ def generate_transcript_from_db(id: str, from_gene_id = False):
     for x in rows_transcripts
   ]
 
+
+# Obtenir un gène par son ID (API)
 @app.route('/api/genes/<id>', methods=["GET"])
 def api_get_gene(id: str):
   custom_etag = str(get_db_mtime())
@@ -387,13 +429,15 @@ def api_get_gene(id: str):
   row_gene = generate_gene_from_db(id, True)
 
   if not row_gene:
-    return sendError(1)
+    abort(sendError(1))
 
   rq = flask.jsonify(row_gene)
   rq.set_etag(custom_etag)
 
   return rq
 
+
+# Obtenir une ligne de gènes (API)
 @app.route('/api/genes')
 def api_get_gene_collection():  
   offset = 0
@@ -409,7 +453,7 @@ def api_get_gene_collection():
       else:
         raise ValueError()
     except:
-      return sendError(4, "Invalid offset parameter")
+      abort(sendError(4, "Invalid offset parameter"))
 
   custom_etag = str(get_db_mtime()) + str(offset)
   if custom_etag in request.if_none_match:
@@ -432,7 +476,7 @@ def api_get_gene_collection():
     if request.args['sort'] in sorts_to_column:
       mode_sort = sorts_to_column[request.args['sort']]
     else:
-      return sendError(8)
+      abort(sendError(8))
   
   if 'way' in request.args and request.args['way'] == 'desc':
     way = "DESC"
@@ -463,6 +507,8 @@ def api_get_gene_collection():
 
   return rq
 
+
+# Supprimer un gène par son ID (API)
 @app.route('/api/genes/<id>', methods=["DELETE"])
 def api_delete_gene(id: str):
   conn = get_db()
@@ -471,7 +517,7 @@ def api_delete_gene(id: str):
   gene = generate_gene_from_db(id)
 
   if not gene:
-    return sendError(1)
+    abort(sendError(1))
 
   cur.execute("""
     DELETE FROM Genes 
@@ -482,21 +528,32 @@ def api_delete_gene(id: str):
 
   return flask.jsonify({ "deleted": id })
 
+
 def check_each_new_gene(data: dict, index = 1, check_existing = True):
+  """
+    Vérification de la validité d'un gène (représenté sous forme de dictionnaire)
+
+    data: Gène
+
+    index: Position dans l'avancement de la vérification (optionnel, utilisé pour les message d'erreur)
+
+    check_existing: Vérifier ou non si le gène existe déjà
+  """
+
   if type(data) is not dict:
-    return sendError(6, f"Invalid type for element {index}")
+    abort(sendError(6, f"Invalid type for element {index}"))
 
   count = 0
   for p in ["Ensembl_Gene_ID", "Chromosome_Name", "Band", "Gene_Start", "Gene_End"]:
     count += 1
     if not p in data:
-      return sendError(2, f"Parameter {p} is missing in JSON object in element {index}.")
+      abort(sendError(2, f"Parameter {p} is missing in JSON object in element {index}."))
 
   if check_existing:
     gene = generate_gene_from_db(data['Ensembl_Gene_ID'])
 
     if gene:
-      return sendError(7)
+      abort(sendError(7))
 
   if "Strand" in data:
     count += 1
@@ -506,33 +563,31 @@ def check_each_new_gene(data: dict, index = 1, check_existing = True):
   
   for p in ["Ensembl_Gene_ID", "Chromosome_Name", "Band", "Associated_Gene_Name"]:
     if p in data and type(data[p]) is not str:
-      return sendError(6, f"Parameter {p} is not of type string in element {index}.")
+      abort(sendError(6, f"Parameter {p} is not of type string in element {index}."))
 
   for p in ["Strand", "Gene_Start", "Gene_End"]:
     if p in data and type(data[p]) is not int:
-      return sendError(6, f"Parameter {p} is not of type int in element {index}.")
+      abort(sendError(6, f"Parameter {p} is not of type int in element {index}."))
 
   if len(data) > count:
-    return sendError(5)
+    abort(sendError(5))
 
   if data['Gene_Start'] >= data['Gene_End']:
-    return sendError(4, f"Gene end must be superior to gene start in element {index}")
+    abort(sendError(4, f"Gene end must be superior to gene start in element {index}"))
 
-  return None
 
+# Publier un nouveau gène ou actualiser un gène existant (API)
 @app.route('/api/genes/<id>', methods=["PUT"])
 def api_put_gene(id: str):
   if not request.is_json:
-    return sendError(4, "Request body must be JSON-encoded")
+    abort(sendError(4, "Request body must be JSON-encoded"))
 
   data = request.json
 
-  error = check_each_new_gene(data, 1, False)
-  if error:
-    return error
+  check_each_new_gene(data, 1, False)
 
   if data['Ensembl_Gene_ID'] != id:
-    return sendError(4, "Parameter Ensembl_Gene_ID must match URL parameter")
+    abort(sendError(4, "Parameter Ensembl_Gene_ID must match URL parameter"))
 
   old_gene = generate_gene_from_db(id)
 
@@ -573,10 +628,12 @@ def api_put_gene(id: str):
 
   return rq
 
+
+# Publier un nouveau gène (API)
 @app.route('/api/genes', methods=["POST"])
 def api_create_new_gene():
   if not request.is_json:
-    return sendError(4, "Request body must be JSON-encoded")
+    abort(sendError(4, "Request body must be JSON-encoded"))
 
   data = request.json
 
@@ -587,12 +644,10 @@ def api_create_new_gene():
   ids = set()
 
   for e in data:
-    error = check_each_new_gene(e, index)
-    if error:
-      return error
+    check_each_new_gene(e, index)
 
     if e['Ensembl_Gene_ID'] in ids:
-      return sendError(4, f"Identifier {e['Ensembl_Gene_ID']} is sended multiple times")
+      abort(sendError(4, f"Identifier {e['Ensembl_Gene_ID']} is sended multiple times"))
     ids.add(e['Ensembl_Gene_ID'])
 
     index += 1
