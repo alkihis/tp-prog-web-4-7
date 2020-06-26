@@ -1,4 +1,4 @@
 python3 -m venv .env
 source .env/bin/activate
-pip install flask matplotlib
+pip3 install flask matplotlib
 

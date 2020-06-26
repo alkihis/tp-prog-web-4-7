@@ -1,8 +1,6 @@
 import flask
-from flask import send_from_directory, request, make_response
-from flask import render_template, abort
+from flask import send_from_directory, request, make_response, render_template, abort, g
 import sqlite3
-from flask import g
 from get_image_mpl import getimage, getsvg
 import typing
 import datetime
@@ -48,10 +46,12 @@ def auto_db_close(teardown):
 def handle_sqlite_exceptions(error: sqlite3.Error):
   return render_template('sql_error.html.jinja', error=error), 500
 
+
 # Sert les fichiers statiques
 @app.route('/<path:filename>')
 def serve_root(filename):
   return send_from_directory('static', filename)
+
 
 # Page parties => gènes
 @app.route('/parts/<part>/genes')
@@ -112,6 +112,7 @@ def organism_parts(part: str):
     has_next=has_next, 
     has_before=has_before
   )
+
 
 # Homepage
 @app.route('/')
